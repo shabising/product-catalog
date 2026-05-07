@@ -7,7 +7,7 @@ import {
   getCategories,
   getProductsByCategory,
   searchProducts,
-} from './lib/api';
+} from './services/productService';
 
 export default function App() {
   const [products, setProducts] = useState([]);
