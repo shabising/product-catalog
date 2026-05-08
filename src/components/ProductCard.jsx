@@ -6,8 +6,7 @@ export default function ProductCard({ product }) {
   return (
     <Link
       to={`/product/${id}`}
-      className="cursor-pointer bg-[#FFDBDA] border border-gray-100 rounded-xl overflow-hidden hover:border-gray-300 transition-all block"
-    >
+        className="cursor-pointer bg-white border border-[#DB7F8E] rounded-xl overflow-hidden hover:border-[#c06070] transition-all block"    >
       <div className="relative h-44 bg-gray-50">
         <img
           src={thumbnail}

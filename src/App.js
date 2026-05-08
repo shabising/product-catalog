@@ -65,7 +65,7 @@ function HomePage() {
   };
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#FFDBDA' }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: '#FAF7F2' }}>
       <Sidebar
         categories={categories}
         selected={selCat}

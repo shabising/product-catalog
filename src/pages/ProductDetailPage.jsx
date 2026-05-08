@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFDBDA' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#FAF7F2' }}>
       < div className="px-6 py-4 flex items-center gap-3" style={{ backgroundColor: '#D5C5C8' }}>
             <Link to="/" className="text-xl font-bold text-gray-900 mr-4">
                 Shoply
