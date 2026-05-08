@@ -68,11 +68,9 @@ export default function ProductDetailPage() {
       ) : (
         <div className="max-w-4xl mx-auto px-6 py-8">
 
-          {/* Main Card */}
           <div className="bg-white rounded-2xl overflow-hidden mb-8">
             <div className="grid md:grid-cols-2 gap-0">
 
-              {/* Gallery */}
               <div className="p-4">
                 <div className="rounded-xl overflow-hidden bg-gray-50 mb-3 h-96 flex items-center justify-center">
                   <img
@@ -96,7 +94,6 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Info */}
               <div className="p-6 flex flex-col justify-between">
                 <div>
                   <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
@@ -105,7 +102,6 @@ export default function ProductDetailPage() {
                   <h1 className="text-xl font-semibold text-gray-900 mb-3">{product.title}</h1>
                   <p className="text-sm text-gray-500 leading-relaxed mb-4">{product.description}</p>
 
-                  {/* Price */}
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
                     <span className="text-sm bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
@@ -113,7 +109,6 @@ export default function ProductDetailPage() {
                     </span>
                   </div>
 
-                  {/* Rating */}
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
                       {[1,2,3,4,5].map(star => (
@@ -126,7 +121,6 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                {/* Badges */}
                 <div className="flex flex-col gap-2">
                   <span className={`inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full w-fit font-medium ${
                     stockStatus === 'In stock' ? 'bg-green-100 text-green-700'
@@ -142,7 +136,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Reviews */}
           {product.reviews?.length > 0 && (
             <div className="bg-white rounded-2xl p-6 mb-8">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
@@ -171,7 +164,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Related Products */}
           {related.length > 0 && (
             <div>
               <h2 className="text-base font-semibold text-gray-800 mb-4">Related Products</h2>

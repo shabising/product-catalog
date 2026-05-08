@@ -19,7 +19,6 @@ export default function Sidebar({ categories, selected, onSelect }) {
         All
       </button>
 
-      {/* CATEGORIES */}
       {categories.map((cat) => {
         const slug = cat.slug ?? cat;
         const name = cat.name ?? cat;
