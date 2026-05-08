@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import ProductCard from './components/ProductCard';
 import Sidebar from './components/Sidebar';
-import ProductDetail from './components/ProductDetail';
+import ProductDetailPage from './pages/ProductDetailPage';
+import useDebounce from './hooks/useDebounce';
 import {
   getProducts,
   getCategories,
@@ -9,23 +11,30 @@ import {
   searchProducts,
 } from './services/productService';
 
-export default function App() {
+function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selCat, setSelCat] = useState('all');
+  const [selCat, setSelCat] = useState(searchParams.get('category') || 'all');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('default');
   const [loading, setLoading] = useState(true);
-  const [detailId, setDetailId] = useState(null);
+
+  const debouncedQuery = useDebounce(query, 500);
 
   useEffect(() => {
     getCategories().then(setCategories);
   }, []);
 
   useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat) setSelCat(cat);
+  }, [searchParams]);
+
+  useEffect(() => {
     setLoading(true);
-    const request = query.trim()
-      ? searchProducts(query)
+    const request = debouncedQuery.trim()
+      ? searchProducts(debouncedQuery)
       : selCat === 'all'
       ? getProducts()
       : getProductsByCategory(
@@ -35,7 +44,7 @@ export default function App() {
       setProducts(d.products || []);
       setLoading(false);
     });
-  }, [selCat, query]);
+  }, [selCat, debouncedQuery]);
 
   const sorted = useMemo(() => {
     const arr = [...products];
@@ -45,13 +54,23 @@ export default function App() {
     return arr;
   }, [products, sort]);
 
+  const handleCatSelect = (cat) => {
+    setSelCat(cat);
+    setQuery('');
+    if (cat === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: cat });
+    }
+  };
+
   return (
-<div className="flex min-h-screen" style={{backgroundColor: '#FFDBDA'}}>      <Sidebar
+    <div className="flex min-h-screen" style={{ backgroundColor: '#FFDBDA' }}>
+      <Sidebar
         categories={categories}
         selected={selCat}
-        onSelect={cat => { setSelCat(cat); setQuery(''); }}
+        onSelect={handleCatSelect}
       />
-
       <main className="flex-1 p-6">
         <div className="flex gap-3 mb-6">
           <input
@@ -60,7 +79,7 @@ export default function App() {
             value={query}
             onChange={e => { setQuery(e.target.value); setSelCat('all'); }}
             className="flex-1 rounded-lg px-3 py-2 text-sm"
-           style={{backgroundColor: '#fff', border: '1px solid #ddd', color: '#333'}}
+            style={{ backgroundColor: '#fff', border: '1px solid #ddd', color: '#333' }}
           />
           <select
             value={sort}
@@ -79,18 +98,20 @@ export default function App() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorted.map(p => (
-              <ProductCard key={p.id} product={p} onClick={p => setDetailId(p.id)} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         )}
       </main>
-
-      {detailId && (
-        <ProductDetail
-          productId={detailId}
-          onClose={() => setDetailId(null)}
-        />
-      )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/product/:id" element={<ProductDetailPage />} />
+    </Routes>
   );
 }

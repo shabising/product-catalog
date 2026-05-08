@@ -1,0 +1,203 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { getProduct, getProductsByCategory } from '../services/productService';
+
+export default function ProductDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeImg, setActiveImg] = useState(0);
+
+  useEffect(() => {
+    setLoading(true);
+    setActiveImg(0);
+    getProduct(id).then(data => {
+      setProduct(data);
+      setLoading(false);
+      if (data?.category) {
+        getProductsByCategory(data.category).then(res => {
+          const others = (res?.products || []).filter(p => p.id !== data.id).slice(0, 4);
+          setRelated(others);
+        });
+      }
+    });
+  }, [id]);
+
+  const stockStatus = product
+    ? product.stock > 20 ? 'In stock'
+      : product.stock > 0 ? 'Low stock'
+      : 'Out of stock'
+    : null;
+
+  if (!loading && !product) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Product not found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#FFDBDA' }}>
+      < div className="px-6 py-4 flex items-center gap-3" style={{ backgroundColor: '#D5C5C8' }}>
+            <Link to="/" className="text-xl font-bold text-gray-900 mr-4">
+                Shoply
+            </Link>
+            <span className="text-gray-400">/</span>
+            <button
+                onClick={() => navigate(-1)}
+                className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+            >
+                ← Back
+            </button>
+            <span className="text-gray-400">/</span>
+            <Link
+                to={`/?category=${product?.category}`}
+                className="text-sm text-gray-600 hover:text-gray-900"
+            >
+                {product?.category}
+            </Link>
+            <span className="text-gray-400">/</span>
+            <span className="text-sm text-gray-800 font-medium line-clamp-1">{product?.title}</span>
+        </div>
+
+      {loading ? (
+        <p className="text-center text-gray-400 py-40">Loading...</p>
+      ) : (
+        <div className="max-w-4xl mx-auto px-6 py-8">
+
+          {/* Main Card */}
+          <div className="bg-white rounded-2xl overflow-hidden mb-8">
+            <div className="grid md:grid-cols-2 gap-0">
+
+              {/* Gallery */}
+              <div className="p-4">
+                <div className="rounded-xl overflow-hidden bg-gray-50 mb-3 h-96 flex items-center justify-center">
+                  <img
+                    src={product.images?.[activeImg]}
+                    alt={product.title}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <div className="flex gap-2 overflow-x-auto">
+                  {product.images?.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition ${
+                        activeImg === i ? 'border-[#DB7F8E]' : 'border-transparent'
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-6 flex flex-col justify-between">
+                <div>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                    {product.brand} · {product.category}
+                  </p>
+                  <h1 className="text-xl font-semibold text-gray-900 mb-3">{product.title}</h1>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-4">{product.description}</p>
+
+                  {/* Price */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-2xl font-bold text-green-600">${product.price.toFixed(2)}</span>
+                    <span className="text-sm bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                      -{product.discountPercentage.toFixed(1)}%
+                    </span>
+                  </div>
+
+                  {/* Rating */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex">
+                      {[1,2,3,4,5].map(star => (
+                        <span key={star} className={star <= Math.round(product.rating) ? 'text-amber-400' : 'text-gray-200'}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-500">{product.rating.toFixed(1)}</span>
+                  </div>
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-col gap-2">
+                  <span className={`inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-full w-fit font-medium ${
+                    stockStatus === 'In stock' ? 'bg-green-100 text-green-700'
+                    : stockStatus === 'Low stock' ? 'bg-amber-100 text-amber-700'
+                    : 'bg-red-100 text-red-700'
+                  }`}>
+                    {stockStatus === 'In stock' ? '✓' : '!'} {stockStatus} ({product.stock} left)
+                  </span>
+                  <span className="text-xs text-gray-400">🚚 {product.shippingInformation}</span>
+                  <span className="text-xs text-gray-400">↩ {product.returnPolicy}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Reviews */}
+          {product.reviews?.length > 0 && (
+            <div className="bg-white rounded-2xl p-6 mb-8">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
+                Reviews ({product.reviews.length})
+              </h2>
+              <div className="flex flex-col gap-4">
+                {product.reviews.map((review, i) => (
+                  <div key={i} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-gray-800">{review.reviewerName}</span>
+                      <div className="flex">
+                        {[1,2,3,4,5].map(star => (
+                          <span key={star} className={`text-xs ${star <= review.rating ? 'text-amber-400' : 'text-gray-200'}`}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500">{review.comment}</p>
+                    <p className="text-xs text-gray-300 mt-1">
+                      {new Date(review.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Related Products */}
+          {related.length > 0 && (
+            <div>
+              <h2 className="text-base font-semibold text-gray-800 mb-4">Related Products</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {related.map(p => (
+                  <Link
+                    key={p.id}
+                    to={`/product/${p.id}`}
+                    className="bg-white rounded-xl overflow-hidden hover:shadow-md transition-all block"
+                  >
+                    <div className="h-36 bg-gray-50">
+                      <img src={p.thumbnail} alt={p.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs font-medium text-gray-800 line-clamp-2 mb-1">{p.title}</p>
+                      <p className="text-xs text-green-600 font-medium">${p.price.toFixed(2)}</p>
+                      <p className="text-xs text-amber-500">★ {p.rating.toFixed(1)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}

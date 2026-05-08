@@ -2,13 +2,12 @@ export default function Sidebar({ categories, selected, onSelect }) {
   return (
     
     <aside className="w-48 shrink-0 border-r border-gray-100 p-4 bg-[#D5C5C8]">
+      <div className="text-2xl font-bold text-gray-900">
+        Shoply
+      </div>
       <p className="text-xs font-medium text-gray-400 uppercase mb-3">
         Categories
       </p>
-        <div className="text-2xl font-bold text-gray-900">
-            Shoply
-        </div>
-
       <button
         onClick={() => onSelect('all')}
         className={`block w-full text-left px-3 py-1.5 rounded-lg text-sm mb-1 transition ${
