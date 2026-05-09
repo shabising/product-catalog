@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState, lazy, Suspense } from 'react';
 import { Routes, Route, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import ProductCard from './components/ProductCard';
 import Sidebar from './components/Sidebar';
-import ProductDetailPage from './pages/ProductDetailPage';
 import useDebounce from './hooks/useDebounce';
+import Loader from './components/ui/Loader';
+import NotFound from './pages/NotFound';
 import {
   getProducts,
   getCategories,
@@ -11,48 +13,40 @@ import {
   searchProducts,
 } from './services/productService';
 
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+
 function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selCat, setSelCat] = useState(searchParams.get('category') || 'all');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('default');
-  const [loading, setLoading] = useState(true);
 
   const debouncedQuery = useDebounce(query, 500);
 
-  useEffect(() => {
-    getCategories().then(setCategories);
-  }, []);
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+    staleTime: 1000 * 60 * 10,
+  });
 
-  useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat) setSelCat(cat);
-  }, [searchParams]);
-
-  useEffect(() => {
-    setLoading(true);
-    const request = debouncedQuery.trim()
-      ? searchProducts(debouncedQuery)
-      : selCat === 'all'
-      ? getProducts()
-      : getProductsByCategory(
-          typeof selCat === 'object' ? selCat.slug : selCat
-        );
-    request.then(d => {
-      setProducts(d.products || []);
-      setLoading(false);
-    });
-  }, [selCat, debouncedQuery]);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['products', selCat, debouncedQuery],
+    queryFn: () =>
+      debouncedQuery.trim()
+        ? searchProducts(debouncedQuery)
+        : selCat === 'all'
+        ? getProducts()
+        : getProductsByCategory(selCat),
+    staleTime: 1000 * 60 * 5,
+  });
 
   const sorted = useMemo(() => {
-    const arr = [...products];
+    const arr = [...(data?.products || [])];
     if (sort === 'low') arr.sort((a, b) => a.price - b.price);
     if (sort === 'high') arr.sort((a, b) => b.price - a.price);
     if (sort === 'rating') arr.sort((a, b) => b.rating - a.rating);
     return arr;
-  }, [products, sort]);
+  }, [data?.products, sort]);
 
   const handleCatSelect = (cat) => {
     setSelCat(cat);
@@ -93,8 +87,14 @@ function HomePage() {
           </select>
         </div>
 
-        {loading ? (
-          <p className="text-center text-gray-400 py-20">Loading...</p>
+        {isError && (
+          <p className="text-center text-red-400 py-20">Something went wrong. Please try again.</p>
+        )}
+
+        {isLoading ? (
+          <Loader />
+        ) : sorted.length === 0 ? (
+          <p className="text-center text-gray-400 py-20">No products found.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorted.map(p => (
@@ -109,9 +109,12 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
+    <Suspense fallback={<p className="text-center text-gray-400 py-40">Loading...</p>}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
       <Route path="/product/:id" element={<ProductDetailPage />} />
-    </Routes>
+      <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }

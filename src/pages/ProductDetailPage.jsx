@@ -1,29 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { getProduct, getProductsByCategory } from '../services/productService';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
 
-  useEffect(() => {
-    setLoading(true);
-    setActiveImg(0);
-    getProduct(id).then(data => {
-      setProduct(data);
-      setLoading(false);
-      if (data?.category) {
-        getProductsByCategory(data.category).then(res => {
-          const others = (res?.products || []).filter(p => p.id !== data.id).slice(0, 4);
-          setRelated(others);
-        });
-      }
-    });
-  }, [id]);
+  const { data: product, isLoading, isError } = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => getProduct(id),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: relatedData } = useQuery({
+    queryKey: ['related', product?.category],
+    queryFn: () => getProductsByCategory(product.category),
+    enabled: !!product?.category,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const related = (relatedData?.products || [])
+    .filter(p => p.id !== Number(id))
+    .slice(0, 4);
 
   const stockStatus = product
     ? product.stock > 20 ? 'In stock'
@@ -31,7 +31,15 @@ export default function ProductDetailPage() {
       : 'Out of stock'
     : null;
 
-  if (!loading && !product) {
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-400">Something went wrong.</p>
+      </div>
+    );
+  }
+
+  if (!isLoading && !product) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Product not found.</p>
@@ -41,36 +49,35 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF7F2' }}>
-      < div className="px-6 py-4 flex items-center gap-3" style={{ backgroundColor: '#D5C5C8' }}>
-            <Link to="/" className="text-xl font-bold text-gray-900 mr-4">
-                Shoply
-            </Link>
-            <span className="text-gray-400">/</span>
-            <button
-                onClick={() => navigate(-1)}
-                className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
-            >
-                ← Back
-            </button>
-            <span className="text-gray-400">/</span>
-            <Link
-                to={`/?category=${product?.category}`}
-                className="text-sm text-gray-600 hover:text-gray-900"
-            >
-                {product?.category}
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-sm text-gray-800 font-medium line-clamp-1">{product?.title}</span>
-        </div>
+      <div className="px-6 py-4 flex items-center gap-3" style={{ backgroundColor: '#D5C5C8' }}>
+        <Link to="/" className="text-xl font-bold text-gray-900 mr-4">
+          Shoply
+        </Link>
+        <span className="text-gray-400">/</span>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+        >
+          ← Back
+        </button>
+        <span className="text-gray-400">/</span>
+        <Link
+          to={`/?category=${product?.category}`}
+          className="text-sm text-gray-600 hover:text-gray-900"
+        >
+          {product?.category}
+        </Link>
+        <span className="text-gray-400">/</span>
+        <span className="text-sm text-gray-800 font-medium line-clamp-1">{product?.title}</span>
+      </div>
 
-      {loading ? (
+      {isLoading ? (
         <p className="text-center text-gray-400 py-40">Loading...</p>
       ) : (
         <div className="max-w-4xl mx-auto px-6 py-8">
 
           <div className="bg-white rounded-2xl overflow-hidden mb-8">
             <div className="grid md:grid-cols-2 gap-0">
-
               <div className="p-4">
                 <div className="rounded-xl overflow-hidden bg-gray-50 mb-3 h-96 flex items-center justify-center">
                   <img
