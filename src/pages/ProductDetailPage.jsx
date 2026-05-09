@@ -72,7 +72,28 @@ export default function ProductDetailPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-center text-gray-400 py-40">Loading...</p>
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="bg-white rounded-2xl overflow-hidden mb-8">
+            <div className="grid md:grid-cols-2 gap-0">
+              <div className="p-4">
+                <div className="rounded-xl bg-gray-200 animate-pulse h-96 mb-3" />
+                <div className="flex gap-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="w-14 h-14 rounded-lg bg-gray-200 animate-pulse" />
+                  ))}
+                </div>
+              </div>
+              <div className="p-6 flex flex-col gap-3">
+                <div className="h-3 bg-gray-200 animate-pulse rounded w-1/3" />
+                <div className="h-6 bg-gray-200 animate-pulse rounded w-3/4" />
+                <div className="h-3 bg-gray-200 animate-pulse rounded w-full" />
+                <div className="h-3 bg-gray-200 animate-pulse rounded w-full" />
+                <div className="h-3 bg-gray-200 animate-pulse rounded w-2/3" />
+                <div className="h-8 bg-gray-200 animate-pulse rounded w-1/4 mt-4" />
+              </div>
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="max-w-4xl mx-auto px-6 py-8">
 
