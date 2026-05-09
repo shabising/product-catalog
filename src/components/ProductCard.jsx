@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
 import useCartStore from '../store/useCartStore';
+import useWishlistStore from '../store/useWishlistStore';
 
 export default function ProductCard({ product }) {
   const { id, thumbnail, title, category, price, rating } = product;
   const addItem = useCartStore(s => s.addItem);
+  const { toggle, isFavorite } = useWishlistStore();
+  const favorited = isFavorite(id);
 
   return (
     <Link
@@ -17,6 +20,13 @@ export default function ProductCard({ product }) {
           alt={`${title} thumbnail`}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
+        <button
+          onClick={(e) => { e.preventDefault(); toggle(product); }}
+          aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow text-sm"
+        >
+          {favorited ? '❤️' : '🤍'}
+        </button>
       </div>
       <div className="p-3" style={{ backgroundColor: '#FFDBDA' }}>
         <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
