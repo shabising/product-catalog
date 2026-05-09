@@ -9,11 +9,11 @@ export default function ProductCard({ product }) {
       aria-label={`View details for ${title}`}
       className="cursor-pointer bg-white border border-[#DB7F8E] rounded-xl overflow-hidden hover:border-[#c06070] transition-all block focus:outline-none focus:ring-2 focus:ring-[#DB7F8E]"
     >
-      <div className="relative h-44 bg-gray-50">
+      <div className="relative h-44 bg-gray-50 overflow-hidden">
         <img
           src={thumbnail}
           alt={`${title} thumbnail`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
         />
       </div>
       <div className="p-3" style={{ backgroundColor: '#FFDBDA' }}>

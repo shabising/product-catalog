@@ -85,8 +85,11 @@ const [, setSearchParams] = useSearchParams();
         {isLoading ? (
           <Loader />
         ) : sorted.length === 0 ? (
-          <p className="text-center text-gray-400 py-20">No products found.</p>
-        ) : (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-4xl mb-3">🔍</p>
+            <p className="text-gray-500 font-medium">No products found</p>
+            <p className="text-gray-400 text-sm mt-1">Try a different search or category</p>
+        </div>        ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {sorted.map(p => (
               <ProductCard key={p.id} product={p} />
