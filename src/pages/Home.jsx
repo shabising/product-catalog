@@ -29,16 +29,16 @@ export default function HomePage() {
     staleTime: STALE_TIME,
   });
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['products', selCat, debouncedQuery],
-    queryFn: () =>
-      debouncedQuery.trim()
-        ? searchProducts(debouncedQuery)
-        : selCat === 'all'
-        ? getProducts()
-        : getProductsByCategory(selCat),
-    staleTime: STALE_TIME,
-  });
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ['products', selCat, debouncedQuery],
+        queryFn: () =>
+        debouncedQuery.trim()
+            ? searchProducts(debouncedQuery)
+            : selCat === 'all'
+            ? getProducts()
+            : getProductsByCategory(selCat),
+        staleTime: STALE_TIME,
+    });
 
   const sorted = useMemo(() => sortProducts(data?.products || [], sort), [data?.products, sort]);
 
@@ -84,8 +84,18 @@ export default function HomePage() {
           </select>
         </div>
 
-        {isError && (
-          <p className="text-center text-red-400 py-20">Something went wrong. Please try again.</p>
+       {isError && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-4xl mb-3">⚠️</p>
+            <p className="text-gray-700 font-medium mb-1">Something went wrong</p>
+            <p className="text-gray-400 text-sm mb-4">Could not load products. Please try again.</p>
+            <button
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-lg text-sm text-white bg-[#DB7F8E] hover:bg-[#c06070] transition"
+            >
+            Retry
+            </button>
+        </div>
         )}
 
         {isLoading ? (
