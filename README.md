@@ -1,6 +1,6 @@
 # Shoply — Product Catalog App
 
-A modern, responsive product catalog built with React. Features dynamic filtering, debounced search, React Query caching, and a clean component architecture.
+A modern, responsive product catalog built with React. Features dynamic filtering, debounced search, React Query caching, favorites, cart, and a clean component architecture.
 
 🔗 **Live Demo:** [shabising.github.io/product-catalog](https://shabising.github.io/product-catalog)
 
@@ -12,12 +12,16 @@ A modern, responsive product catalog built with React. Features dynamic filterin
 - 🔍 Debounced search (500ms) — reduces unnecessary API calls
 - ⚡ React Query caching — no redundant fetches on revisit
 - 📄 Product detail page with image gallery, reviews, and related products
+- ❤️ Favorites — add/remove products, view in dedicated favorites page
+- 🕐 Recently Viewed — last 6 visited products shown on detail page
+- 🛒 Cart — add products, manage quantities via cart drawer
 - 💀 Skeleton loading on both list and detail pages
 - ⚠️ Error UI with retry button
 - 📱 Fully responsive grid layout
 - ♿ Accessible — semantic HTML, aria-labels, keyboard navigation
 - 🔢 Client-side pagination (12 products per page)
 - 🚀 Lazy loaded routes with React Suspense
+- ✨ Framer Motion animations — card entrance, hover, and tap effects
 
 ---
 
@@ -28,7 +32,8 @@ A modern, responsive product catalog built with React. Features dynamic filterin
 | React 19 | UI framework |
 | React Router v7 | Client-side routing |
 | TanStack React Query | Data fetching & caching |
-| Zustand | Global state management |
+| Zustand + persist | Global state management |
+| Framer Motion | Animations & transitions |
 | Tailwind CSS | Styling |
 | DummyJSON API | Mock product data |
 
@@ -39,6 +44,7 @@ A modern, responsive product catalog built with React. Features dynamic filterin
 ```
 src/
 ├── components/
+│   ├── CartDrawer.jsx
 │   ├── ProductCard.jsx
 │   ├── ProductDetail.jsx
 │   ├── Sidebar.jsx
@@ -48,10 +54,12 @@ src/
 ├── constants/
 │   └── index.js
 ├── hooks/
-│   └── useDebounce.js
+│   ├── useDebounce.js
+│   └── useRecentlyViewed.js
 ├── layouts/
 │   └── MainLayout.jsx
 ├── pages/
+│   ├── FavoritesPage.jsx
 │   ├── Home.jsx
 │   ├── NotFound.jsx
 │   └── ProductDetailPage.jsx
@@ -61,8 +69,8 @@ src/
 │   └── productService.js
 ├── store/
 │   ├── useCartStore.js
-│   ├── useDarkModeStore.js
-│   └── useFilterStore.js
+│   ├── useFilterStore.js
+│   └── useWishlistStore.js
 ├── utils/
 │   ├── sort.js
 │   └── stockStatus.js
@@ -74,11 +82,12 @@ src/
 
 ## Optimization Techniques
 
-- **Lazy Loading** — `ProductDetailPage` is loaded only when navigated to, reducing initial bundle size
+- **Lazy Loading** — `ProductDetailPage` and `FavoritesPage` are loaded only when navigated to, reducing initial bundle size
 - **Debounced Search** — search input waits 500ms before firing API request, reducing server load
 - **React Query Caching** — fetched data is cached for 5 minutes (`staleTime`), avoiding redundant network calls
 - **Memoization** — `useMemo` used for sort operations to avoid unnecessary recalculations on re-render
 - **URL-synced Filters** — category filters are stored in URL params, enabling shareable links and browser back/forward support
+- **Persisted State** — favorites and cart are saved to `localStorage` via Zustand `persist` middleware, surviving page refreshes
 
 ---
 
