@@ -1,17 +1,13 @@
 export default function Sidebar({ categories, selected, onSelect }) {
-
-
   return (
     <aside
       className="w-48 shrink-0 border-r border-gray-100 p-4 bg-[#D5C5C8]"
       aria-label="Product categories"
     >
-    <div className="text-2xl font-bold text-gray-900 mb-3">Shoply</div>
-
+      <div className="text-2xl font-bold text-gray-900 mb-3">Shoply</div>
       <p className="text-xs font-medium text-gray-400 uppercase mb-3">
         Categories
       </p>
-
       <nav aria-label="Category filter">
         <button
           onClick={() => onSelect('all')}
@@ -24,12 +20,10 @@ export default function Sidebar({ categories, selected, onSelect }) {
         >
           All
         </button>
-
         {categories.map((cat) => {
           const slug = cat.slug ?? cat;
           const name = cat.name ?? cat;
           const isActive = selected === slug;
-
           return (
             <button
               key={slug}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from '../components/ProductCard';
 import Sidebar from '../components/Sidebar';
@@ -8,6 +8,7 @@ import useDebounce from '../hooks/useDebounce';
 import useFilterStore from '../store/useFilterStore';
 import { sortProducts } from '../utils/sort';
 import useCartStore from '../store/useCartStore';
+import useWishlistStore from '../store/useWishlistStore';
 import { SORT_OPTIONS, STALE_TIME } from '../constants';
 import {
   getProducts,
@@ -19,7 +20,8 @@ import {
 const PAGE_SIZE = 12;
 
 export default function HomePage() {
-const { totalItems, openCart } = useCartStore();
+  const { totalItems, openCart } = useCartStore();
+  const wishlistCount = useWishlistStore(s => s.items.length);
   const [, setSearchParams] = useSearchParams();
   const { selCat, query, sort, setSelCat, setQuery, setSort } = useFilterStore();
   const [page, setPage] = useState(1);
@@ -31,16 +33,16 @@ const { totalItems, openCart } = useCartStore();
     staleTime: STALE_TIME,
   });
 
-    const { data, isLoading, isError, refetch } = useQuery({
-        queryKey: ['products', selCat, debouncedQuery],
-        queryFn: () =>
-        debouncedQuery.trim()
-            ? searchProducts(debouncedQuery)
-            : selCat === 'all'
-            ? getProducts()
-            : getProductsByCategory(selCat),
-        staleTime: STALE_TIME,
-    });
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['products', selCat, debouncedQuery],
+    queryFn: () =>
+      debouncedQuery.trim()
+        ? searchProducts(debouncedQuery)
+        : selCat === 'all'
+        ? getProducts()
+        : getProductsByCategory(selCat),
+    staleTime: STALE_TIME,
+  });
 
   const sorted = useMemo(() => sortProducts(data?.products || [], sort), [data?.products, sort]);
 
@@ -84,32 +86,48 @@ const { totalItems, openCart } = useCartStore();
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+
+          {/* Favorites button */}
+          <Link
+            to="/favorites"
+            aria-label="Favorites"
+            className="relative p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
+          >
+            ❤️
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[#DB7F8E] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Cart button */}
           <button
             onClick={openCart}
             aria-label="Open cart"
             className="relative p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
-        >
+          >
             🛒
             {totalItems() > 0 && (
-            <span className="absolute -top-1 -right-1 bg-[#DB7F8E] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-[#DB7F8E] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {totalItems()}
-            </span>
+              </span>
             )}
-        </button>
+          </button>
         </div>
 
-       {isError && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+        {isError && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-4xl mb-3">⚠️</p>
             <p className="text-gray-700 font-medium mb-1">Something went wrong</p>
             <p className="text-gray-400 text-sm mb-4">Could not load products. Please try again.</p>
             <button
-            onClick={() => refetch()}
-            className="px-4 py-2 rounded-lg text-sm text-white bg-[#DB7F8E] hover:bg-[#c06070] transition"
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-lg text-sm text-white bg-[#DB7F8E] hover:bg-[#c06070] transition"
             >
-            Retry
+              Retry
             </button>
-        </div>
+          </div>
         )}
 
         {isLoading ? (
