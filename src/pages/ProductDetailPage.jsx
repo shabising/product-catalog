@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import useRecentlyViewed from '../hooks/useRecentlyViewed';
 import { getProduct, getProductsByCategory } from '../services/productService';
 
 export default function ProductDetailPage() {
@@ -20,6 +21,11 @@ export default function ProductDetailPage() {
     enabled: !!product?.category,
     staleTime: 1000 * 60 * 5,
   });
+  const { addProduct } = useRecentlyViewed(Number(id));
+  useEffect(() => {
+    if (product) addProduct(product);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product]);
 
   const related = (relatedData?.products || [])
     .filter(p => p.id !== Number(id))
@@ -193,7 +199,7 @@ export default function ProductDetailPage() {
           )}
 
           {related.length > 0 && (
-            <div>
+            <div className="mb-8">
               <h2 className="text-base font-semibold text-gray-800 mb-4">Related Products</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {related.map(p => (

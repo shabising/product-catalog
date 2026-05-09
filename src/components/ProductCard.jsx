@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
+import useCartStore from '../store/useCartStore';
 
 export default function ProductCard({ product }) {
   const { id, thumbnail, title, category, price, rating } = product;
+  const addItem = useCartStore(s => s.addItem);
 
   return (
     <Link
@@ -32,10 +34,11 @@ export default function ProductCard({ product }) {
           </span>
         </div>
         <button
-          aria-label={`View details for ${title}`}
-          className="w-full text-center text-xs py-1.5 rounded-lg bg-[#DB7F8E] text-white border-none transition focus:outline-none focus:ring-2 focus:ring-[#c06070]"
+          onClick={(e) => { e.preventDefault(); addItem(product); }}
+          aria-label={`Add ${title} to cart`}
+          className="w-full text-center text-xs py-1.5 rounded-lg bg-[#DB7F8E] text-white border-none transition focus:outline-none focus:ring-2 focus:ring-[#c06070] hover:bg-[#c06070]"
         >
-          View Details
+          Add to Cart
         </button>
       </div>
     </Link>

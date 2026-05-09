@@ -7,6 +7,7 @@ import Loader from '../components/ui/Loader';
 import useDebounce from '../hooks/useDebounce';
 import useFilterStore from '../store/useFilterStore';
 import { sortProducts } from '../utils/sort';
+import useCartStore from '../store/useCartStore';
 import { SORT_OPTIONS, STALE_TIME } from '../constants';
 import {
   getProducts,
@@ -18,6 +19,7 @@ import {
 const PAGE_SIZE = 12;
 
 export default function HomePage() {
+const { totalItems, openCart } = useCartStore();
   const [, setSearchParams] = useSearchParams();
   const { selCat, query, sort, setSelCat, setQuery, setSort } = useFilterStore();
   const [page, setPage] = useState(1);
@@ -64,7 +66,7 @@ export default function HomePage() {
         onSelect={handleCatSelect}
       />
       <main className="flex-1 p-6">
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-6 items-center">
           <input
             type="text"
             placeholder="Search products..."
@@ -82,6 +84,18 @@ export default function HomePage() {
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+          <button
+            onClick={openCart}
+            aria-label="Open cart"
+            className="relative p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
+        >
+            🛒
+            {totalItems() > 0 && (
+            <span className="absolute -top-1 -right-1 bg-[#DB7F8E] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {totalItems()}
+            </span>
+            )}
+        </button>
         </div>
 
        {isError && (
