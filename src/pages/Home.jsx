@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from '../components/ProductCard';
@@ -15,10 +15,12 @@ import {
   searchProducts,
 } from '../services/productService';
 
-export default function HomePage() {
-const [, setSearchParams] = useSearchParams();
-  const { selCat, query, sort, setSelCat, setQuery, setSort } = useFilterStore();
+const PAGE_SIZE = 12;
 
+export default function HomePage() {
+  const [, setSearchParams] = useSearchParams();
+  const { selCat, query, sort, setSelCat, setQuery, setSort } = useFilterStore();
+  const [page, setPage] = useState(1);
   const debouncedQuery = useDebounce(query, 500);
 
   const { data: categories = [] } = useQuery({
@@ -40,9 +42,13 @@ const [, setSearchParams] = useSearchParams();
 
   const sorted = useMemo(() => sortProducts(data?.products || [], sort), [data?.products, sort]);
 
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   const handleCatSelect = (cat) => {
     setSelCat(cat);
     setQuery('');
+    setPage(1);
     if (cat === 'all') {
       setSearchParams({});
     } else {
@@ -63,13 +69,13 @@ const [, setSearchParams] = useSearchParams();
             type="text"
             placeholder="Search products..."
             value={query}
-            onChange={e => { setQuery(e.target.value); setSelCat('all'); setSearchParams({}); }}
+            onChange={e => { setQuery(e.target.value); setSelCat('all'); setPage(1); setSearchParams({}); }}
             className="flex-1 rounded-lg px-3 py-2 text-sm"
             style={{ backgroundColor: '#fff', border: '1px solid #ddd', color: '#333' }}
           />
           <select
             value={sort}
-            onChange={e => setSort(e.target.value)}
+            onChange={e => { setSort(e.target.value); setPage(1); }}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
           >
             {SORT_OPTIONS.map(o => (
@@ -85,16 +91,53 @@ const [, setSearchParams] = useSearchParams();
         {isLoading ? (
           <Loader />
         ) : sorted.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-4xl mb-3">🔍</p>
             <p className="text-gray-500 font-medium">No products found</p>
             <p className="text-gray-400 text-sm mt-1">Try a different search or category</p>
-        </div>        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {sorted.map(p => (
-              <ProductCard key={p.id} product={p} />
-            ))}
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {paginated.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-lg text-sm border border-gray-200 disabled:opacity-40 hover:bg-gray-100 transition"
+                >
+                  ←
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                      page === i + 1
+                        ? 'bg-[#DB7F8E] text-white'
+                        : 'border border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-lg text-sm border border-gray-200 disabled:opacity-40 hover:bg-gray-100 transition"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
